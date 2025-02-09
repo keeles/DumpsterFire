@@ -1,0 +1,34 @@
+@{
+ViewData["Title"] = "Dumpster Fire";
+}
+
+@model ASP.NETCore.Board
+
+<div class="">
+    <h1 class="display-4 text-center">@Html.DisplayFor(modelItem => modelItem.Title)</h1>
+    <div class="forum-section">
+        <div class="section-header">
+            <h2>Threads</h2>
+        </div>
+        @foreach (var thread in Model.Threads)
+        {
+        <div class="thread">
+            <div>
+                <div class="thread-title">
+                    <a class="post-link" asp-area="" asp-controller="Thread" asp-action="Index"
+                        asp-route-id="@thread.Serial">
+                        @Html.DisplayFor(modelItem => thread.Title)
+                    </a>
+                </div>
+            </div>
+            <div class="stats">
+                <div>32 Posts</div>
+            </div>
+            <div class="thread-meta">
+                Created by @Html.DisplayFor(modelItem => thread.User.Username) <img class="post-pic"
+                    src="@Html.DisplayFor(modelItem => thread.User.ProfilePicture)" /><br>
+                @Html.DisplayFor(modelItem => thread.CreatedAt)
+            </div>
+        </div>
+        }
+    </div>

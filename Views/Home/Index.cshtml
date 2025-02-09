@@ -1,35 +1,43 @@
 ﻿@{
-    ViewData["Title"] = "Dumpster Fire";
+ViewData["Title"] = "Dumpster Fire";
 }
 
-@model IEnumerable<ASP.NETCore.Board> 
+@model IEnumerable<ASP.NETCore.Board>
 
-<div class="">
-    <h1 class="display-4 text-center">Welcome to Dumpster Fire</h1>
-    @foreach (var board in Model) 
-    {
+    <div class="">
+        <h1 class="display-4 text-center">Welcome to Dumpster Fire</h1>
+        @foreach (var board in Model)
+        {
         <div class="forum-section">
             <div class="section-header">
-                <h2>@Html.DisplayFor(modelItem => board.Title)</h2>
-                <p></p>
+                <a class="post-link" asp-area="" asp-route-id="@board.Serial" asp-controller="Board" asp-action="Index">
+                    <h2>@Html.DisplayFor(modelItem => board.Title)</h2>
+                </a>
             </div>
-                @foreach (var thread in board.Threads)
-                {
-                <div class="thread">
-                    <div>
-                        <div class="thread-title">@Html.DisplayFor(modelItem => thread.Title)</div>
-                        <div class="thread-meta">@Html.DisplayFor(modelItem => thread.User.Username) @Html.DisplayFor(modelItem => thread.CreatedAt)</div>
+            @foreach (var thread in board.Threads)
+            {
+            <div class="thread">
+                <div>
+                    <div class="thread-title">
+                        <a class="post-link" asp-area="" asp-controller="Thread" asp-action="Index"
+                            asp-route-id="@thread.Serial">
+                            @Html.DisplayFor(modelItem => thread.Title)
+                        </a>
                     </div>
-                    <div class="stats">
-                        <div>15 replies</div>
-                        <div>203 views</div>
-                    </div>
-                    <div class="thread-meta">
-                        Last post by @Html.DisplayFor(modelItem => thread.User.Username)<br>
-                        5 min ago
-                    </div>
-                </div>    
-                }
+
+                    <div class="thread-meta">@Html.DisplayFor(modelItem => thread.User.Username)
+                        @Html.DisplayFor(modelItem => thread.CreatedAt)</div>
+                </div>
+                <div class="stats">
+                    <div>15 replies</div>
+                    <div>203 views</div>
+                </div>
+                <div class="thread-meta">
+                    Last post by @Html.DisplayFor(modelItem => thread.User.Username)<br>
+                    5 min ago
+                </div>
+            </div>
+            }
         </div>
-    }
+        }
     </div>

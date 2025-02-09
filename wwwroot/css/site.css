@@ -98,9 +98,21 @@ body {
   color: var(--text-primary) !important;
 }
 
+.post-link {
+  color: var(--text-primary) !important;
+  text-decoration: none;
+  padding-left: 0.25rem;
+}
+
 .nav-icon {
   width: 2rem;
   height: auto;
+}
+
+.post-pic {
+  width: 1.5rem;
+  height: auto;
+  margin-left: 0.4rem;
 }
 
 .navbar-toggler {
