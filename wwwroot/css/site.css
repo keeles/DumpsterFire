@@ -1,0 +1,122 @@
+html {
+  font-size: 14px;
+}
+
+:root {
+  --bg-dark: #121212;
+  --nav-dark: #1a1a1a;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  margin: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  margin-bottom: 60px;
+}
+.header {
+  background: var(--nav-dark);
+  color: white;
+  padding: 1rem;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.forum-section {
+  background-color: var(--nav-dark);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.section-header {
+  background-color: var(--nav-dark);
+  padding: 1rem;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid var(--text-primary);
+}
+.thread {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid var(--text-primary);
+  background-color: var(--nav-dark);
+}
+.thread:last-child {
+  border-bottom: none;
+}
+.thread-title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.thread-meta {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 0 0.25rem;
+}
+.stats {
+  text-align: center;
+  padding: 0 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.button {
+  background: #0056b3;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-block;
+}
+.navbar {
+  background-color: var(--nav-dark) !important;
+}
+.navbar-brand,
+.nav-link {
+  color: var(--text-primary) !important;
+}
+
+.nav-icon {
+  width: 2rem;
+  height: auto;
+}
+
+.navbar-toggler {
+  background-color: var(--text-secondary);
+}
+
+.footer {
+  background-color: var(--nav-dark);
+  color: var(--text-secondary);
+}
+
+.footer a {
+  color: var(--text-primary);
+}
+
+.border-bottom,
+.border-top {
+  border-color: #333 !important;
+}
