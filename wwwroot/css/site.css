@@ -7,6 +7,7 @@ html {
   --nav-dark: #1a1a1a;
   --text-primary: #e0e0e0;
   --text-secondary: #a0a0a0;
+  --orange-highlight: #ff781f;
 }
 
 @media (min-width: 768px) {
@@ -56,6 +57,8 @@ body {
   padding: 1rem;
   border-radius: 8px 8px 0 0;
   border-bottom: 1px solid var(--text-primary);
+  display: flex;
+  justify-content: space-between;
 }
 .thread {
   display: grid;
@@ -70,6 +73,7 @@ body {
 .thread-title {
   color: var(--text-primary);
   font-weight: 500;
+  margin-right: 2rem;
 }
 .thread-meta {
   color: var(--text-primary);
@@ -131,4 +135,25 @@ body {
 .border-bottom,
 .border-top {
   border-color: #333 !important;
+}
+
+.form-control {
+  background-color: var(--nav-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.form-control:focus {
+  border-color: var(--orange-highlight);
+  box-shadow: var(--orange-highlight);
+  transition: ease-in-out;
+  transition-duration: 0.15s;
+  background-color: var(--nav-dark);
+  color: var(--text-primary);
+}
+
+.create {
+  background: none;
+  color: var(--text-secondary);
+  border-radius: 3px;
 }

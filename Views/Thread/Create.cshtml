@@ -1,19 +1,21 @@
-@{
-ViewData["Title"] = "Dumpster Fire";
-}
-
 @model ASP.NETCore.Board
 
 <div class="">
-    <h1 class="display-4 text-center">@Html.DisplayFor(modelItem => modelItem.Title)</h1>
+    <h1 class="display-4 text-center">@Model.Title</h1>
     <div class="forum-section">
         <div class="section-header">
-            <h2>Threads</h2>
-            <a class="post-link" asp-route-id="@Model.Serial" asp-controller="Thread" asp-action="Create"
-                asp-route-id="@Html.DisplayFor(modelItem => modelItem.Serial)">
-                <img class="nav-icon" src="/icons/create-icon.svg" alt="">
-            </a>
+            <h2>New Thread</h2>
         </div>
+        <form class="thread" asp-route-id="@Model.Serial" asp-action="New" asp-controller="Thread" method="POST">
+            <div>
+                <div class="thread-title">
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title"></span>
+                </div>
+            </div>
+            @Html.AntiForgeryToken()
+            <button class="create" type="submit">Create Thread</button>
+        </form>
         @foreach (var thread in Model.Threads)
         {
         <div class="thread">
