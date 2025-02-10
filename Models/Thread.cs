@@ -10,7 +10,7 @@ public class Thread
     [Required]
     public User User { get; private set; }
     public string Title { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+    public DateTime CreatedAt { get; } = DateTime.Now;
     public Board Board { get; private set; }
     public ICollection<Post> Posts { get; } = new List<Post>();
 

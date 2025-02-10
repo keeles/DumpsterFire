@@ -25,7 +25,8 @@ public class ThreadController : Controller
             .Include(t => t.User)
             .Where(t => t.Serial == id)
             .SingleAsync();
-        return View(thread);
+        var tuple = new Tuple<Thread, Post>(thread, new Post());
+        return View(tuple);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

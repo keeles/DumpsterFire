@@ -157,3 +157,7 @@ body {
   color: var(--text-secondary);
   border-radius: 3px;
 }
+
+.display-none {
+  display: none;
+}

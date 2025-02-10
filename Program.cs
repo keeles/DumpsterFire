@@ -33,5 +33,6 @@ app.UseAuthorization();
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapControllerRoute(name: "default", pattern: "{controller=Thread}/{action=Index}/{id?}");
 app.MapControllerRoute(name: "default", pattern: "{controller=Board}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Post}/{action=Index}/{id?}");
 
 app.Run();

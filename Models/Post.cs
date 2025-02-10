@@ -9,6 +9,8 @@ public class Post
 
     [Required]
     public string Content { get; set; }
+
+    //TODO: Is this overriding?
     public DateTime CreatedAt { get; } = DateTime.Now;
     public User User { get; private set; }
     public Thread Thread { get; private set; }

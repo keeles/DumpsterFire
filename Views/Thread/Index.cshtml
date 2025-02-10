@@ -1,26 +1,50 @@
-@model ASP.NETCore.Thread
+@using ASP.NETCore.Models
+@model Tuple<ASP.NETCore.Thread, ASP.NETCore.Post>
+    @{
+    var thread = Model.Item1;
+    var newPost = Model.Item2;
+    }
 
-<div class="">
-    <h1 class="display-4 text-center">@Html.DisplayFor(modelItem => modelItem.Title)</h1>
-    <div class="forum-section">
-        <div class="section-header">
-            <h2>Discussion</h2>
+    <div class="">
+        <h1 class="display-4 text-center">@Html.DisplayFor(tuple => tuple.Item1.Title)</h1>
+        <div class="forum-section">
+            <div class="section-header">
+                <h2>Discussion</h2>
+                <a class="post-link create-post-toggle" asp-route-id="@thread.Serial" asp-controller="Post"
+                    asp-action="Create" asp-route-id="@thread.Serial">
+                    <img class="nav-icon" src="/icons/create-icon.svg" alt="">
+                </a>
+            </div>
+            <form class="thread create-post display-none" asp-route-id="@thread.Serial" asp-action="New"
+                asp-controller="Post" method="POST">
+                <div>
+                    <div class="thread-title">
+                        <input name="content" class="form-control" />
+                    </div>
+                </div>
+                <div class="stats">
+                </div>
+                <div class="thread-meta">
+                    Posted by keeles <img class="post-pic" src="/favicon.svg" /><br>
+                    @Html.AntiForgeryToken()
+                    <button class="create" type="submit">Post</button>
+                </div>
+            </form>
+            @foreach (var post in @thread.Posts)
+            {
+            <div class="thread">
+                <div>
+                    <div class="thread-title">@Html.DisplayFor(tuple => post.Content)</div>
+                </div>
+                <div class="stats">
+                    <div>32 +</div>
+                    <div>12 -</div>
+                </div>
+                <div class="thread-meta">
+                    Posted by @Html.DisplayFor(modelItem => post.User.Username) <img class="post-pic"
+                        src="@Html.DisplayFor(modelItem => post.User.ProfilePicture)" /><br>
+                    @Html.DisplayFor(modelItem => post.CreatedAt)
+                </div>
+            </div>
+            }
         </div>
-        @foreach (var post in Model.Posts)
-        {
-        <div class="thread">
-            <div>
-                <div class="thread-title">@Html.DisplayFor(modelItem => post.Content)</div>
-            </div>
-            <div class="stats">
-                <div>32 +</div>
-                <div>12 -</div>
-            </div>
-            <div class="thread-meta">
-                Posted by @Html.DisplayFor(modelItem => post.User.Username) <img class="post-pic"
-                    src="@Html.DisplayFor(modelItem => post.User.ProfilePicture)" /><br>
-                @Html.DisplayFor(modelItem => post.CreatedAt)
-            </div>
-        </div>
-        }
-    </div>
