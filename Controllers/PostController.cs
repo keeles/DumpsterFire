@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,18 @@ namespace ASP.NETCore.Controllers;
 public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
+    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
-    public PostController(ILogger<PostController> logger, ApplicationDbContext context)
+    public PostController(
+        ILogger<PostController> logger,
+        ApplicationDbContext context,
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _logger = logger;
         _context = context;
+        _session = httpContextAccessor.HttpContext.Session;
     }
 
     public IActionResult Index()

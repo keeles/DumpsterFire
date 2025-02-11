@@ -1,0 +1,26 @@
+@model ASP.NETCore.User
+
+<div class="">
+    <h1 class="display-4 text-center">Register for Dumpster Fire</h1>
+    <div class="forum-section">
+        <div class="section-header">
+            <h2>Register</h2>
+        </div>
+        <form class="register-form" asp-area="" asp-controller="Auth" asp-action="Register" method="POST">
+            <input placeholder="Username" asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username"></span>
+            <input placeholder="Password" asp-for="Password" class="form-control" type="password" />
+            <span asp-validation-for="Password"></span>
+            <input placeholder="About" asp-for="About" class="form-control" />
+            <span asp-validation-for="About"></span>
+            <input data-buttonText="Profile Picture" asp-for="ProfilePicture"
+                class="profile-picture-selection form-control display-none" type="file"
+                accept="image/png, image/jpeg" />
+            <span asp-validation-for="ProfilePicture"></span>
+            <div class="register-button-container">
+                <button class="profile-picture">Upload a Profile Picture</button>
+                <button class="create" type="submit">Register</button>
+            </div>
+        </form>
+    </div>
+</div>

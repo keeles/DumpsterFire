@@ -159,5 +159,59 @@ body {
 }
 
 .display-none {
-  display: none;
+  display: none !important;
+}
+
+.login-form {
+  display: flex;
+  padding: 0;
+}
+
+.login-input {
+  margin-right: 1rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem;
+}
+
+.register-form > input {
+  margin-bottom: 1rem;
+}
+
+.profile-picture {
+  background: none;
+  color: var(--text-secondary);
+  border-radius: 3px;
+  border-style: dashed;
+  border-color: var(--text-secondary);
+  width: 50rem;
+}
+
+.profile-picture:hover {
+  border-color: var(--orange-highlight);
+}
+
+.profile-picture:focus {
+  outline: none;
+  border-style: dashed;
+  border-color: var(--orange-highlight);
+  box-shadow: var(--orange-highlight);
+  transition: ease-in-out;
+  transition-duration: 0.15s;
+}
+
+.register-button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.create:focus {
+  outline: none;
+  border-color: var(--orange-highlight);
+  box-shadow: var(--orange-highlight);
+  transition: ease-in-out;
+  transition-duration: 0.15s;
 }

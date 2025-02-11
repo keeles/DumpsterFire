@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,18 @@ namespace ASP.NETCore.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
-    public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+    public HomeController(
+        ILogger<HomeController> logger,
+        ApplicationDbContext context,
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _logger = logger;
         _context = context;
+        _session = httpContextAccessor.HttpContext.Session;
     }
 
     public async Task<IActionResult> Index()

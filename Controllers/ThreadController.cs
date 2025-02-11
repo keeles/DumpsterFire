@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,18 @@ namespace ASP.NETCore.Controllers;
 public class ThreadController : Controller
 {
     private readonly ILogger<ThreadController> _logger;
+    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
-    public ThreadController(ILogger<ThreadController> logger, ApplicationDbContext context)
+    public ThreadController(
+        ILogger<ThreadController> logger,
+        ApplicationDbContext context,
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _logger = logger;
         _context = context;
+        _session = httpContextAccessor.HttpContext.Session;
     }
 
     [HttpGet("Thread/Index/{id}")]

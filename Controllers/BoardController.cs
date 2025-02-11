@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +9,18 @@ namespace ASP.NETCore.Controllers;
 public class BoardController : Controller
 {
     private readonly ILogger<BoardController> _logger;
+    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
-    public BoardController(ILogger<BoardController> logger, ApplicationDbContext context)
+    public BoardController(
+        ILogger<BoardController> logger,
+        ApplicationDbContext context,
+        IHttpContextAccessor httpContextAccessor
+    )
     {
         _logger = logger;
         _context = context;
+        _session = httpContextAccessor.HttpContext.Session;
     }
 
     [HttpGet("Board/Index/{id}")]

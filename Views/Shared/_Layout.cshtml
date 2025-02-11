@@ -1,22 +1,26 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="icon" href="~/favicon.svg" type="image/x-icon"/>
+    <link rel="icon" href="~/favicon.svg" type="image/x-icon" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ASP.NETCore.styles.css" asp-append-version="true" />
 </head>
+
 <body>
     <header>
         <nav class="navbar text-white navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Dumpster Fire</a>
-                <img src="~/favicon.svg" alt="" class="nav-icon"/>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <img src="~/favicon.svg" alt="" class="nav-icon" />
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -29,6 +33,29 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Search">Search</a>
+                        </li>
+                        @if (!string.IsNullOrEmpty(@HttpContextAccessor.HttpContext.Session.GetString("loggedIn")))
+                        {
+                        <li>
+                            <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
+                        </li>
+                        }
+                        else
+                        {
+                        <li>
+                            <a class="nav-link login-toggle" asp-area="" asp-controller="Auth"
+                                asp-action="Login">Login</a>
+                        </li>
+                        }
+                        <li>
+                            <form class="nav-link login-form display-none" asp-area="" asp-controller="Auth"
+                                asp-action="Login" method="POST">
+                                <input placeholder="Username" name="username" class="form-control login-input" />
+                                <input placeholder="Password" name="password" class="form-control login-input"
+                                    type="password" />
+                                <button class="create" type="submit">Login</button>
+                            </form>
+                            <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Register">Register</a>
                         </li>
                     </ul>
                 </div>
@@ -51,4 +78,5 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

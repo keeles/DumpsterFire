@@ -8,3 +8,17 @@ $(document).ready(() => {
     $(".create-post").toggleClass("display-none");
   });
 });
+
+$(document).ready(() => {
+  $(".login-toggle").click((e) => {
+    e.preventDefault();
+    $(".login-form").toggleClass("display-none");
+  });
+});
+
+$(document).ready(() => {
+  $(".profile-picture").click((e) => {
+    e.preventDefault();
+    $(".profile-picture-selection").click();
+  });
+});
