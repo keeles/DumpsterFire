@@ -1,0 +1,33 @@
+@{
+ViewData["Title"] = "Dumpster Fire";
+}
+
+@model IEnumerable<ASP.NETCore.User>
+
+    <div class="">
+        <h1 class="display-4 text-center"></h1>
+        <div class="forum-section">
+            <div class="section-header">
+                <h2>Members</h2>
+            </div>
+            @foreach (var member in Model)
+            {
+            <div class="thread">
+                <div>
+                    <div class="thread-title">
+                        @Html.DisplayFor(modelItem => member.Username)
+                    </div>
+                    <div>
+                        @Html.DisplayFor(modelItem => member.About)
+                    </div>
+                </div>
+                <div class="stats">
+                    <div>12 Posts</div>
+                </div>
+                <div class="thread-meta">
+                    <img class="post-pic" src="@Html.DisplayFor(modelItem => member.ProfilePicture)" /><br>
+                    @Html.DisplayFor(modelItem => member.Rep)
+                </div>
+            </div>
+            }
+        </div>

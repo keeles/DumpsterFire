@@ -32,12 +32,20 @@ public class PostController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> New(int threadId, [Bind("content")] string content)
     {
-        var user = await _context.Users.Where(u => u.Serial == 1).SingleAsync();
-        var thread = await _context.Threads.Where(t => t.Serial == threadId).SingleAsync();
-        Post post = new Post(content, user, thread);
-        await _context.Posts.AddAsync(post);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index), "Thread", new { id = thread.Serial });
+        try
+        {
+            var username = _session.GetString("loggedIn");
+            User user = await _context.Users.Where(u => u.Username == username).SingleAsync();
+            var thread = await _context.Threads.Where(t => t.Serial == threadId).SingleAsync();
+            Post post = new Post(content, user, thread);
+            await _context.Posts.AddAsync(post);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index), "Thread", new { id = thread.Serial });
+        }
+        catch
+        {
+            return RedirectToAction(nameof(Index), "Home");
+        }
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
