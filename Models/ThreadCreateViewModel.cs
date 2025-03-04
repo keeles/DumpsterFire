@@ -4,7 +4,7 @@ namespace ASP.NETCore.Models
 {
     public class ThreadCreateViewModel
     {
-        public int BoardId { get; set; }
+        public Board Board { get; set; }
 
         [Required(ErrorMessage = "Thread title is required")]
         [StringLength(
@@ -15,7 +15,9 @@ namespace ASP.NETCore.Models
         [Display(Name = "Thread Title")]
         public string Title { get; set; }
 
-        // Additional fields you might want to include
-        public string BoardTitle { get; set; }
+        public ThreadCreateViewModel(Board board)
+        {
+            Board = board;
+        }
     }
 }

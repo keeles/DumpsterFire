@@ -35,11 +35,6 @@ public class ThreadController : Controller
                 .Where(t => t.Serial == id)
                 .SingleAsync();
             var tuple = new Tuple<Thread, Post>(thread, new Post());
-            var viewModel = new CreateThreadViewModel
-            {
-                models = tuple,
-                createModel = new ThreadCreateViewModel(),
-            };
             return View(tuple);
         }
         catch
@@ -66,7 +61,8 @@ public class ThreadController : Controller
                 .ThenInclude(t => t.User)
                 .Where(b => b.Serial == id)
                 .SingleAsync();
-            return View(board);
+            var viewModel = new ThreadCreateViewModel(board);
+            return View(viewModel);
         }
         catch
         {

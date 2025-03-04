@@ -1,22 +1,23 @@
-@model ASP.NETCore.Board
+@model ASP.NETCore.Models.ThreadCreateViewModel
 
 <div class="">
-    <h1 class="display-4 text-center">@Model.Title</h1>
+    <h1 class="display-4 text-center">@Model.Board.Title</h1>
     <div class="forum-section">
         <div class="section-header">
             <h2>New Thread</h2>
         </div>
-        <form class="thread" asp-route-id="@Model.Serial" asp-action="New" asp-controller="Thread" method="POST">
+        <form class="thread" asp-route-id="@Model.Board.Serial" asp-action="New" asp-controller="Thread" method="POST">
             <div>
                 <div class="thread-title">
                     <input asp-for="Title" class="form-control" />
-                    <span asp-validation-for="Title"></span>
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
             </div>
             @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <button class="create" type="submit">Create Thread</button>
         </form>
-        @foreach (var thread in Model.Threads)
+        @foreach (var thread in Model.Board.Threads)
         {
         <div class="thread">
             <div>
@@ -38,3 +39,7 @@
         </div>
         }
     </div>
+
+    @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    }
