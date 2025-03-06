@@ -37,11 +37,6 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Members()
-    {
-        return View("Error");
-    }
-
     public IActionResult Search()
     {
         return View("Error");

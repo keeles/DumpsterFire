@@ -2,7 +2,7 @@ namespace ASP.NETCore;
 
 using System.ComponentModel.DataAnnotations;
 
-public class Post
+public class Message
 {
     [Key]
     public int Serial { get; private set; }
@@ -12,19 +12,21 @@ public class Post
 
     //TODO: Is this overriding?
     public DateTime CreatedAt { get; } = DateTime.Now;
+
+    public Nullable<DateTime> ReadAt { get; set; }
     public User User { get; private set; }
-    public Thread Thread { get; private set; }
+    public User Recipient { get; private set; }
 
-    public int? ReplyingToPostId { get; set; }
+    public int ReplyingToMessageId { get; private set; }
 
-    public Post() { }
+    public Message() { }
 
-    public Post(string content, User user, Thread thread, int? replyingToId = null)
+    public Message(string content, User user, User recipient, int replyingToMessageId)
         : this()
     {
         Content = content;
         User = user;
-        Thread = thread;
-        ReplyingToPostId = replyingToId;
+        Recipient = recipient;
+        ReplyingToMessageId = replyingToMessageId;
     }
 }
