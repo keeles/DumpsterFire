@@ -55,7 +55,8 @@ public class AuthController : Controller
     [HttpGet("Auth/Register")]
     public IActionResult Register()
     {
-        return View();
+        var viewModel = new RegisterViewModel();
+        return View(viewModel);
     }
 
     [HttpPost("Auth/Register")]
