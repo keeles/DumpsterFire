@@ -32,16 +32,6 @@ public class HomeController : Controller
         return View(boards);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    public IActionResult Search()
-    {
-        return View("Error");
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

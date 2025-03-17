@@ -26,6 +26,7 @@ public class MemberController : Controller
     public async Task<IActionResult> Index()
     {
         var users = await _context.Users.ToListAsync();
+        throw new Exception();
         return View(users);
     }
 

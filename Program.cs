@@ -26,12 +26,29 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseDeveloperExceptionPage();
+    app.UseStatusCodePagesWithReExecute("/Error/NotFound", "?statusCode={0}");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+}
+else if (app.Environment.IsStaging())
+{
+    app.UseExceptionHandler("/Error/Index");
+    app.UseStatusCodePagesWithReExecute("/Error/NotFound", "?statusCode={0}");
+}
+else if (app.Environment.IsEnvironment("Testing"))
+{
+    app.UseDeveloperExceptionPage();
+    app.UseStatusCodePagesWithReExecute("/Error/NotFound", "?statusCode={0}");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+else
+{
+    app.UseExceptionHandler("/Error/Index");
+    app.UseStatusCodePagesWithReExecute("/Error/NotFound", "?statusCode={0}");
 }
 
 app.UseHttpsRedirection();
@@ -44,9 +61,10 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapControllerRoute(name: "default", pattern: "{controller=Thread}/{action=Index}/{id?}");
-app.MapControllerRoute(name: "default", pattern: "{controller=Board}/{action=Index}/{id?}");
-app.MapControllerRoute(name: "default", pattern: "{controller=Post}/{action=Index}/{id?}");
-app.MapControllerRoute(name: "default", pattern: "{controller=Auth}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "Thread", pattern: "{controller=Thread}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "Board", pattern: "{controller=Board}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "Post", pattern: "{controller=Post}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "Auth", pattern: "{controller=Auth}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "Error", pattern: "{controller=Error}/{action=Index}");
 
 app.Run();
