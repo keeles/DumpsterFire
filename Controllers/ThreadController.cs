@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using ASP.NETCore.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,18 +11,21 @@ namespace ASP.NETCore.Controllers;
 public class ThreadController : Controller
 {
     private readonly ILogger<ThreadController> _logger;
+    private readonly UserManager<User> _userManager;
     private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
     public ThreadController(
         ILogger<ThreadController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<User> userManager
     )
     {
         _logger = logger;
         _context = context;
         _session = httpContextAccessor.HttpContext.Session;
+        _userManager = userManager;
     }
 
     [HttpGet("Thread/Index/{id}")]
@@ -76,7 +81,10 @@ public class ThreadController : Controller
     {
         try
         {
-            var user = await _context.Users.Where(u => u.Serial == 1).SingleAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.GetUserAsync(User);
+            if (string.IsNullOrEmpty(user?.Id))
+                throw new Exception("User not found");
             var board = await _context.Boards.Where(b => b.Serial == boardId).SingleAsync();
             Thread newThread = new Thread(user, title, board);
             await _context.Threads.AddAsync(newThread);

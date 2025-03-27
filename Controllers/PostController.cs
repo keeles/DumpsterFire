@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using ASP.NETCore.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,16 +13,19 @@ public class PostController : Controller
     private readonly ILogger<PostController> _logger;
     private readonly ISession _session;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
 
     public PostController(
         ILogger<PostController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<User> userManager
     )
     {
         _logger = logger;
         _context = context;
         _session = httpContextAccessor.HttpContext.Session;
+        _userManager = userManager;
     }
 
     public IActionResult Index()
@@ -34,8 +39,10 @@ public class PostController : Controller
     {
         try
         {
-            var username = _session.GetString("loggedIn");
-            User user = await _context.Users.Where(u => u.Username == username).SingleAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.GetUserAsync(User);
+            if (string.IsNullOrEmpty(user?.Id))
+                throw new Exception("User not found");
             var thread = await _context.Threads.Where(t => t.Serial == threadId).SingleAsync();
             Post post = new Post(content, user, thread);
             await _context.Posts.AddAsync(post);

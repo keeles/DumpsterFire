@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using ASP.NETCore.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,43 +13,60 @@ public class AuthController : Controller
     private readonly ILogger<AuthController> _logger;
     private readonly ISession _session;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
     public AuthController(
         ILogger<AuthController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
+        UserManager<User> userManager,
+        SignInManager<User> signInManager
     )
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
+        _signInManager = signInManager;
+        _userManager = userManager;
     }
 
     [HttpPost("Auth/Login")]
-    public async Task<IActionResult> Login(
-        [Bind("Username")] string username,
-        [Bind("Password")] string password
-    )
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
-        try
+        model.ReturnUrl ??= Url.Content("~/");
+        if (ModelState.IsValid)
         {
-            User user = await _context.Users.Where(u => u.Username == username).SingleAsync();
-            bool validPassword = BCrypt.Net.BCrypt.Verify(password, user.Password);
-            if (validPassword)
+            var result = await _signInManager.PasswordSignInAsync(
+                model.Username,
+                model.Password,
+                model.RememberMe,
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
             {
-                _session.SetString("loggedIn", username);
+                _logger.LogInformation("User logged in.");
+                return RedirectToAction(nameof(Index), "Home");
+            }
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage(
+                    "./LoginWith2fa",
+                    new { ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe }
+                );
+            }
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out.");
+                return RedirectToPage("./Lockout");
             }
             else
             {
-                //TODO: show some feedback to the user?
-                Console.WriteLine("Invalid Password");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return RedirectToAction(nameof(Index), "Home");
             }
         }
-        catch
-        {
-            //TODO: show some feedback to the user?
-            Console.WriteLine("Could not find user in db");
-        }
+
+        // If we got this far, something failed, redisplay form
         return RedirectToAction(nameof(Index), "Home");
     }
 
@@ -60,44 +78,110 @@ public class AuthController : Controller
     }
 
     [HttpPost("Auth/Register")]
-    public async Task<IActionResult> Register(
-        [Bind("Username")] string username,
-        [Bind("Password")] string password,
-        [Bind("About")] string about,
-        //TODO: Handle profile picture upload
-        [Bind("ProfilePicture")]
-            string profilePicture
-    )
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model, IFormFile profilePicture)
     {
-        try
+        ModelState.Remove("ProfilePicture");
+        if (!ModelState.IsValid)
         {
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentNullException(nameof(username), "Cannot be empty");
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentNullException(nameof(password), "Cannot be empty");
-            if (string.IsNullOrEmpty(profilePicture))
-                profilePicture = "/favicon.svg";
-            if (string.IsNullOrEmpty(about))
-                about = $"Hey! I am {username}";
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-            User user = new User(username, hashedPassword, profilePicture, about);
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
-            _session.SetString("loggedIn", username);
+            var errors = ModelState
+                .Where(x => x.Value.Errors.Count > 0)
+                .Select(x => new
+                {
+                    Key = x.Key,
+                    Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList(),
+                })
+                .ToList();
+
+            // Log errors to console
+            Console.WriteLine("Validation Errors:");
+            foreach (var error in errors)
+            {
+                Console.WriteLine($"Property: {error.Key}");
+                foreach (var errorMessage in error.Errors)
+                {
+                    Console.WriteLine($"- {errorMessage}");
+                }
+            }
+
+            // Alternatively, you can log to your logger
+            foreach (var error in errors)
+            {
+                _logger.LogWarning(
+                    $"Validation Error in {error.Key}: {string.Join(", ", error.Errors)}"
+                );
+            }
         }
-        catch
+        if (ModelState.IsValid)
         {
-            //TODO: show some feedback to the user?
-            Console.WriteLine("Error registering user and setting session");
+            string ProfilePicture = "";
+            string Username = model.Username;
+            string About = string.IsNullOrEmpty(model.About)
+                ? $"Hey! I am {model.Username}"
+                : model.About;
+            // Handle profile picture upload
+            if (profilePicture != null && profilePicture.Length > 0)
+            {
+                var uploadPath = Path.Combine("wwwroot", "uploads", "profiles");
+                Directory.CreateDirectory(uploadPath);
+                var fileName = $"{Guid.NewGuid()}_{profilePicture.FileName}";
+                var filePath = Path.Combine(uploadPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profilePicture.CopyToAsync(stream);
+                }
+
+                ProfilePicture = $"/uploads/profiles/{fileName}";
+            }
+            else
+            {
+                ProfilePicture = "/favicon.svg";
+            }
+            var user = new User();
+            user.UserName = Username;
+            user.About = About;
+            user.ProfilePicture = ProfilePicture;
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User created a new account with password.");
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
-        return RedirectToAction(nameof(Index), "Home");
+        return View(model);
     }
 
-    [HttpGet("Auth/Logout")]
-    public IActionResult Logout()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout(string returnUrl = null)
     {
-        _session.Remove("loggedIn");
-        return RedirectToAction(nameof(Index), "Home");
+        await _signInManager.SignOutAsync();
+        _logger.LogInformation("User logged out.");
+
+        if (returnUrl != null)
+        {
+            return LocalRedirect(returnUrl);
+        }
+        else
+        {
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+    }
+
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

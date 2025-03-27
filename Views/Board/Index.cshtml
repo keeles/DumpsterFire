@@ -29,7 +29,7 @@ ViewData["Title"] = "Dumpster Fire";
                 <div>32 Posts</div>
             </div>
             <div class="thread-meta">
-                Created by @Html.DisplayFor(modelItem => thread.User.Username) <img class="post-pic"
+                Created by @Html.DisplayFor(modelItem => thread.User.UserName) <img class="post-pic"
                     src="@Html.DisplayFor(modelItem => thread.User.ProfilePicture)" /><br>
                 @Html.DisplayFor(modelItem => thread.CreatedAt)
             </div>
