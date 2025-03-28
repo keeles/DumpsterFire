@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASP.NETCore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250327064121_InitialIdentityMigration")]
-    partial class InitialIdentityMigration
+    [Migration("20250328192759_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,6 +112,7 @@ namespace ASP.NETCore.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("About")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("AccessFailedCount")

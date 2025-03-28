@@ -11,22 +11,24 @@ namespace ASP.NETCore.Controllers;
 public class AuthController : Controller
 {
     private readonly ILogger<AuthController> _logger;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
+    private readonly S3UploadService _s3UploadService;
 
     public AuthController(
         ILogger<AuthController> logger,
         ApplicationDbContext context,
         UserManager<User> userManager,
-        SignInManager<User> signInManager
+        SignInManager<User> signInManager,
+        S3UploadService s3UploadService
     )
     {
         _logger = logger;
         _context = context;
         _signInManager = signInManager;
         _userManager = userManager;
+        _s3UploadService = s3UploadService;
     }
 
     [HttpPost("Auth/Login")]
@@ -66,7 +68,6 @@ public class AuthController : Controller
             }
         }
 
-        // If we got this far, something failed, redisplay form
         return RedirectToAction(nameof(Index), "Home");
     }
 
@@ -81,74 +82,38 @@ public class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model, IFormFile profilePicture)
     {
-        ModelState.Remove("ProfilePicture");
         if (!ModelState.IsValid)
         {
-            var errors = ModelState
-                .Where(x => x.Value.Errors.Count > 0)
-                .Select(x => new
-                {
-                    Key = x.Key,
-                    Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList(),
-                })
-                .ToList();
-
-            // Log errors to console
-            Console.WriteLine("Validation Errors:");
-            foreach (var error in errors)
-            {
-                Console.WriteLine($"Property: {error.Key}");
-                foreach (var errorMessage in error.Errors)
-                {
-                    Console.WriteLine($"- {errorMessage}");
-                }
-            }
-
-            // Alternatively, you can log to your logger
-            foreach (var error in errors)
-            {
-                _logger.LogWarning(
-                    $"Validation Error in {error.Key}: {string.Join(", ", error.Errors)}"
-                );
-            }
+            Console.WriteLine("Error with model state");
+            Console.WriteLine(ModelState.ErrorCount);
         }
         if (ModelState.IsValid)
         {
-            string ProfilePicture = "";
             string Username = model.Username;
-            string About = string.IsNullOrEmpty(model.About)
-                ? $"Hey! I am {model.Username}"
-                : model.About;
-            // Handle profile picture upload
-            if (profilePicture != null && profilePicture.Length > 0)
-            {
-                var uploadPath = Path.Combine("wwwroot", "uploads", "profiles");
-                Directory.CreateDirectory(uploadPath);
-                var fileName = $"{Guid.NewGuid()}_{profilePicture.FileName}";
-                var filePath = Path.Combine(uploadPath, fileName);
+            string About = model.About;
+            string? profilePictureUrl = null;
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+            if (model.ProfilePicture != null && model.ProfilePicture.Length > 0)
+            {
+                profilePictureUrl = await _s3UploadService.UploadFileAsync(model.ProfilePicture);
+
+                if (profilePictureUrl == null)
                 {
-                    await profilePicture.CopyToAsync(stream);
+                    ModelState.AddModelError("ProfilePicture", "File upload failed");
+                    return View(model);
                 }
-
-                ProfilePicture = $"/uploads/profiles/{fileName}";
-            }
-            else
-            {
-                ProfilePicture = "/favicon.svg";
             }
             var user = new User();
             user.UserName = Username;
             user.About = About;
-            user.ProfilePicture = ProfilePicture;
+            user.ProfilePicture = profilePictureUrl;
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
                 _logger.LogInformation("User created a new account with password.");
-
+                await _userManager.AddToRoleAsync(user, "User");
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction(nameof(HomeController.Index), "Home");
             }
@@ -163,7 +128,7 @@ public class AuthController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout(string returnUrl = null)
+    public async Task<IActionResult> Logout(string? returnUrl = null)
     {
         await _signInManager.SignOutAsync();
         _logger.LogInformation("User logged out.");
@@ -176,6 +141,21 @@ public class AuthController : Controller
         {
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MakeAdmin(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return View("Error");
+        }
+        var result = await _userManager.AddToRoleAsync(user, "Admin");
+        if (!result.Succeeded)
+            return View("Error");
+        return RedirectToAction(nameof(MemberController.Index), "Member");
     }
 
     [HttpGet]

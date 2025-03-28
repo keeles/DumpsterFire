@@ -1,8 +1,7 @@
-@{
-ViewData["Title"] = "Dumpster Fire";
-}
-
 @model IEnumerable<ASP.NETCore.User>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 
     <div class="">
         <h1 class="display-4 text-center"></h1>
@@ -23,6 +22,20 @@ ViewData["Title"] = "Dumpster Fire";
                 </div>
                 <div class="stats">
                     <div>12 Posts</div>
+                @{
+                    var isCurrentUserAdmin = User?.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin");
+                    var isMemberAlreadyAdmin = await UserManager.IsInRoleAsync(member, "Admin");
+                }
+                @if (isCurrentUserAdmin && !isMemberAlreadyAdmin)
+                    {
+                        <form asp-action="MakeAdmin" 
+                            asp-controller="Auth" 
+                            asp-route-id="@member.Id" 
+                            method="post">
+                            @Html.AntiForgeryToken()
+                            <button class="create" type="submit">Make Admin</button>
+                        </form>
+                    }
                 </div>
                 <div class="thread-meta">
                     <img class="post-pic" src="@Html.DisplayFor(modelItem => member.ProfilePicture)" /><br>

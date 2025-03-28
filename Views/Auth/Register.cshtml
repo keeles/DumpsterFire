@@ -6,7 +6,7 @@
         <div class="section-header">
             <h2>Register</h2>
         </div>
-        <form class="register-form" asp-area="" asp-controller="Auth" asp-action="Register" method="POST">
+        <form class="register-form" asp-area="" asp-controller="Auth" asp-action="Register" method="POST" enctype="multipart/form-data">
             <span asp-validation-for="Username" class="text-danger"></span>
             <input placeholder="Username" asp-for="Username" class="form-control" />
             <span asp-validation-for="Password" class="text-danger"></span>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,19 +13,16 @@ public class ThreadController : Controller
 {
     private readonly ILogger<ThreadController> _logger;
     private readonly UserManager<User> _userManager;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
     public ThreadController(
         ILogger<ThreadController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor,
         UserManager<User> userManager
     )
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
         _userManager = userManager;
     }
 
@@ -57,6 +55,7 @@ public class ThreadController : Controller
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Create(int id)
     {
         try
@@ -77,6 +76,7 @@ public class ThreadController : Controller
 
     [HttpPost("Thread/New/{boardId}")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> New(int boardId, [Bind("Title")] string title)
     {
         try

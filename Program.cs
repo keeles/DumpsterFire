@@ -1,4 +1,8 @@
 using System.Data.Common;
+using Amazon;
+using Amazon.Extensions.NETCore.Setup;
+using Amazon.Runtime;
+using Amazon.S3;
 using ASP.NETCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -49,8 +53,21 @@ builder
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
         options.User.RequireUniqueEmail = false;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddAWSService<IAmazonS3>(
+    new AWSOptions
+    {
+        Credentials = new BasicAWSCredentials(
+            builder.Configuration["AWS:AccessKey"],
+            builder.Configuration["AWS:SecretKey"]
+        ),
+        Region = RegionEndpoint.GetBySystemName(builder.Configuration["AWS:Region"] ?? "us-east-2"),
+    }
+);
+builder.Services.AddScoped<S3UploadService>();
 
 var app = builder.Build();
 
@@ -94,5 +111,19 @@ app.MapControllerRoute(name: "Board", pattern: "{controller=Board}/{action=Index
 app.MapControllerRoute(name: "Post", pattern: "{controller=Post}/{action=Index}/{id?}");
 app.MapControllerRoute(name: "Auth", pattern: "{controller=Auth}/{action=Index}/{id?}");
 app.MapControllerRoute(name: "Error", pattern: "{controller=Error}/{action=Index}");
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var roles = new[] { "User", "Admin" };
+    foreach (string roleName in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            var role = new IdentityRole(roleName);
+            await roleManager.CreateAsync(role);
+        }
+    }
+}
 
 app.Run();

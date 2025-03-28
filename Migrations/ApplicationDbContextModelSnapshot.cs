@@ -109,6 +109,7 @@ namespace ASP.NETCore.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("About")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("AccessFailedCount")

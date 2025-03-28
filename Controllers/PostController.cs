@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Claims;
 using ASP.NETCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,20 +12,17 @@ namespace ASP.NETCore.Controllers;
 public class PostController : Controller
 {
     private readonly ILogger<PostController> _logger;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
 
     public PostController(
         ILogger<PostController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor,
         UserManager<User> userManager
     )
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
         _userManager = userManager;
     }
 
@@ -35,6 +33,7 @@ public class PostController : Controller
 
     [HttpPost("Post/New/{threadId}")]
     [ValidateAntiForgeryToken]
+    [Authorize]
     public async Task<IActionResult> New(int threadId, [Bind("content")] string content)
     {
         try
