@@ -1,6 +1,7 @@
-using System.Diagnostics;
-using ASP.NETCore.Models;
-using Microsoft.AspNetCore.Http;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,24 +10,24 @@ namespace ASP.NETCore.Controllers;
 public class MemberController : Controller
 {
     private readonly ILogger<MemberController> _logger;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
 
     public MemberController(
         ILogger<MemberController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
+        UserManager<User> userManager
     )
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
+        _userManager = userManager;
     }
 
+    [Authorize]
     public async Task<IActionResult> Index()
     {
         var users = await _context.Users.ToListAsync();
-        throw new Exception();
         return View(users);
     }
 

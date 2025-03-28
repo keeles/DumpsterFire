@@ -1,4 +1,7 @@
 @using ASP.NETCore.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
 @model Tuple<ASP.NETCore.Thread, ASP.NETCore.Post>
     @{
     var thread = Model.Item1;
@@ -10,10 +13,13 @@
         <div class="forum-section">
             <div class="section-header">
                 <h2>Discussion</h2>
+            @if (User?.Identity != null && User.Identity.IsAuthenticated)
+            {
                 <a class="post-link create-post-toggle" asp-route-id="@thread.Serial" asp-controller="Post"
                     asp-action="Create" asp-route-id="@thread.Serial">
                     <img class="nav-icon" src="/icons/create-icon.svg" alt="">
                 </a>
+            }
             </div>
             <form class="thread create-post display-none" asp-route-id="@thread.Serial" asp-action="New"
                 asp-controller="Post" method="POST">
@@ -41,7 +47,7 @@
                     <div>12 -</div>
                 </div>
                 <div class="thread-meta">
-                    Posted by @Html.DisplayFor(modelItem => post.User.Username) <img class="post-pic"
+                    Posted by @Html.DisplayFor(modelItem => post.User.UserName) <img class="post-pic"
                         src="@Html.DisplayFor(modelItem => post.User.ProfilePicture)" /><br>
                     @Html.DisplayFor(modelItem => post.CreatedAt)
                 </div>

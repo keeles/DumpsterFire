@@ -9,18 +9,12 @@ namespace ASP.NETCore.Controllers;
 public class BoardController : Controller
 {
     private readonly ILogger<BoardController> _logger;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
 
-    public BoardController(
-        ILogger<BoardController> logger,
-        ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
-    )
+    public BoardController(ILogger<BoardController> logger, ApplicationDbContext context)
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
     }
 
     [HttpGet("Board/Index/{id}")]

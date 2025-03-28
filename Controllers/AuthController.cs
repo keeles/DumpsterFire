@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using ASP.NETCore.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,45 +11,63 @@ namespace ASP.NETCore.Controllers;
 public class AuthController : Controller
 {
     private readonly ILogger<AuthController> _logger;
-    private readonly ISession _session;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
+    private readonly S3UploadService _s3UploadService;
 
     public AuthController(
         ILogger<AuthController> logger,
         ApplicationDbContext context,
-        IHttpContextAccessor httpContextAccessor
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
+        S3UploadService s3UploadService
     )
     {
         _logger = logger;
         _context = context;
-        _session = httpContextAccessor.HttpContext.Session;
+        _signInManager = signInManager;
+        _userManager = userManager;
+        _s3UploadService = s3UploadService;
     }
 
     [HttpPost("Auth/Login")]
-    public async Task<IActionResult> Login(
-        [Bind("Username")] string username,
-        [Bind("Password")] string password
-    )
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
-        try
+        model.ReturnUrl ??= Url.Content("~/");
+        if (ModelState.IsValid)
         {
-            User user = await _context.Users.Where(u => u.Username == username).SingleAsync();
-            bool validPassword = BCrypt.Net.BCrypt.Verify(password, user.Password);
-            if (validPassword)
+            var result = await _signInManager.PasswordSignInAsync(
+                model.Username,
+                model.Password,
+                model.RememberMe,
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
             {
-                _session.SetString("loggedIn", username);
+                _logger.LogInformation("User logged in.");
+                return RedirectToAction(nameof(Index), "Home");
+            }
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage(
+                    "./LoginWith2fa",
+                    new { ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe }
+                );
+            }
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out.");
+                return RedirectToPage("./Lockout");
             }
             else
             {
-                //TODO: show some feedback to the user?
-                Console.WriteLine("Invalid Password");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return RedirectToAction(nameof(Index), "Home");
             }
         }
-        catch
-        {
-            //TODO: show some feedback to the user?
-            Console.WriteLine("Could not find user in db");
-        }
+
         return RedirectToAction(nameof(Index), "Home");
     }
 
@@ -60,44 +79,89 @@ public class AuthController : Controller
     }
 
     [HttpPost("Auth/Register")]
-    public async Task<IActionResult> Register(
-        [Bind("Username")] string username,
-        [Bind("Password")] string password,
-        [Bind("About")] string about,
-        //TODO: Handle profile picture upload
-        [Bind("ProfilePicture")]
-            string profilePicture
-    )
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model, IFormFile profilePicture)
     {
-        try
+        if (!ModelState.IsValid)
         {
-            if (string.IsNullOrEmpty(username))
-                throw new ArgumentNullException(nameof(username), "Cannot be empty");
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentNullException(nameof(password), "Cannot be empty");
-            if (string.IsNullOrEmpty(profilePicture))
-                profilePicture = "/favicon.svg";
-            if (string.IsNullOrEmpty(about))
-                about = $"Hey! I am {username}";
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-            User user = new User(username, hashedPassword, profilePicture, about);
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
-            _session.SetString("loggedIn", username);
+            Console.WriteLine("Error with model state");
+            Console.WriteLine(ModelState.ErrorCount);
         }
-        catch
+        if (ModelState.IsValid)
         {
-            //TODO: show some feedback to the user?
-            Console.WriteLine("Error registering user and setting session");
+            string Username = model.Username;
+            string About = model.About;
+            string? profilePictureUrl = null;
+
+            if (model.ProfilePicture != null && model.ProfilePicture.Length > 0)
+            {
+                profilePictureUrl = await _s3UploadService.UploadFileAsync(model.ProfilePicture);
+
+                if (profilePictureUrl == null)
+                {
+                    ModelState.AddModelError("ProfilePicture", "File upload failed");
+                    return View(model);
+                }
+            }
+            var user = new User();
+            user.UserName = Username;
+            user.About = About;
+            user.ProfilePicture = profilePictureUrl;
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User created a new account with password.");
+                await _userManager.AddToRoleAsync(user, "User");
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
-        return RedirectToAction(nameof(Index), "Home");
+        return View(model);
     }
 
-    [HttpGet("Auth/Logout")]
-    public IActionResult Logout()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout(string? returnUrl = null)
     {
-        _session.Remove("loggedIn");
-        return RedirectToAction(nameof(Index), "Home");
+        await _signInManager.SignOutAsync();
+        _logger.LogInformation("User logged out.");
+
+        if (returnUrl != null)
+        {
+            return LocalRedirect(returnUrl);
+        }
+        else
+        {
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MakeAdmin(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return View("Error");
+        }
+        var result = await _userManager.AddToRoleAsync(user, "Admin");
+        if (!result.Succeeded)
+            return View("Error");
+        return RedirectToAction(nameof(MemberController.Index), "Member");
+    }
+
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

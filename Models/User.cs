@@ -1,28 +1,20 @@
 namespace ASP.NETCore;
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
-public class User
+public class User : IdentityUser
 {
-    [Key]
-    public int Serial { get; private set; }
+    public string About { get; set; } = string.Empty;
+    public string? ProfilePicture { get; set; }
+    public int Rep { get; set; } = 0;
 
-    [Required]
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public string ProfilePicture { get; set; }
-    public string About { get; set; }
-    public int Rep { get; set; }
-    public ICollection<Thread> Threads { get; } = new List<Thread>();
-    public ICollection<Board> Boards { get; } = new List<Board>();
-    public ICollection<Post> Posts { get; } = new List<Post>();
+    public User() { }
 
-    public User(string username, string password, string profilePicture, string about)
+    public User(string userName)
+        : base(userName)
     {
-        Username = username;
-        Password = password;
-        ProfilePicture = profilePicture;
-        About = about;
+        About = string.Empty;
         Rep = 0;
     }
 }

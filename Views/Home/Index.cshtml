@@ -21,7 +21,7 @@
                         </a>
                     </div>
 
-                    <div class="thread-meta">@Html.DisplayFor(modelItem => thread.User.Username)
+                    <div class="thread-meta">@Html.DisplayFor(modelItem => thread.User.UserName)
                         @Html.DisplayFor(modelItem => thread.CreatedAt)</div>
                 </div>
                 <div class="stats">
@@ -29,7 +29,7 @@
                     <div>203 views</div>
                 </div>
                 <div class="thread-meta">
-                    Last post by @Html.DisplayFor(modelItem => thread.User.Username)<br>
+                    Last post by @Html.DisplayFor(modelItem => thread.User.UserName)<br>
                     5 min ago
                 </div>
             </div>
